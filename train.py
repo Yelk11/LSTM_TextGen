@@ -50,11 +50,23 @@ X = X / float(n_vocab)
 # one hot encode the output variable
 y = to_categorical(dataY)
 # define the LSTM model
-model = Sequential()
-model.add(LSTM(256, input_shape=(X.shape[1], X.shape[2])))
-model.add(Dropout(0.2))
-model.add(Dense(y.shape[1], activation='softmax'))
-model.compile(loss='categorical_crossentropy', optimizer='adam')
+
+def build_model(hp):
+    model = keras.Sequential()
+    model.add(LSTM(256, input_shape=(X.shape[1], X.shape[2])))
+    model.add(
+        layers.Dense(
+            # Define the hyperparameter.
+            units=hp.Int("units", min_value=32, max_value=512, step=32),
+            activation="relu",
+        )
+    )
+    model.add(layers.Dense(10, activation="softmax"))
+    model.compile(
+        optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"],
+    )
+    return model
+
 # define the checkpoint
 filepath="weights-improvement-{epoch:02d}.hdf5"
 checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
